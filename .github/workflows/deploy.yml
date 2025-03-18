@@ -1,37 +1,44 @@
-name: Deploy Express App
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Runs on push to the main branch
+      - main  # Triggers deployment when code is pushed to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Connecting to EC2 instance..."
 
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/express-app:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/express-app:latest
+            # Change to the project directory
+            cd express-mongoose-docker || { echo "Directory not found!"; exit 1; }
 
-    - name: Deploy to Server via SSH
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/express-app:latest
-          docker stop express-app || true
-          docker rm express-app || true
-          docker run -d -p 5000:5000 --name express-app ${{ secrets.DOCKER_USERNAME }}/express-app:latest
+            # Pull the latest changes
+            echo "Pulling latest changes from GitHub..."
+            git pull origin main || { echo "Git pull failed!"; exit 1; }
+
+            # Stop and remove existing containers
+            echo "Stopping running containers..."
+            docker-compose down || { echo "Failed to stop containers"; exit 1; }
+
+            # Rebuild and start containers
+            echo "Building and starting Docker containers..."
+            docker-compose up -d --build || { echo "Docker build failed!"; exit 1; }
+
+            # Restart Nginx to apply changes
+            echo "Restarting Nginx..."
+            sudo systemctl restart nginx || { echo "Failed to restart Nginx"; exit 1; }
+
+            echo "Deployment successful! 🚀"
