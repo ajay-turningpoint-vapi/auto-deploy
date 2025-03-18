@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build: .
+    container_name: express-app
+    restart: always
+    ports:
+      - "5008:5002"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mmongodb+srv://turningpoint:pFyIV13V5STCylEt@cluster-turningpoint.d636ay8.mongodb.net/docker_test
+
+volumes:
+  mongo_data:
