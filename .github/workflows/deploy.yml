@@ -34,4 +34,4 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/express-app:latest
           docker stop express-app || true
           docker rm express-app || true
-          docker run -d -p 5008:5002 --name express-app ${{ secrets.DOCKER_USERNAME }}/express-app:latest
+          docker run -d -p 5000:5000 --name express-app ${{ secrets.DOCKER_USERNAME }}/express-app:latest

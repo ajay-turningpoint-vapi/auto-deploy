@@ -15,11 +15,11 @@ services:
     container_name: express-app
     restart: always
     ports:
-      - "5008:5002"
+      - "5003:5003"
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mmongodb+srv://turningpoint:pFyIV13V5STCylEt@cluster-turningpoint.d636ay8.mongodb.net/docker_test
+      - MONGO_URI=mongodb+srv://turningpoint:pFyIV13V5STCylEt@cluster-turningpoint.d636ay8.mongodb.net/docker_test
 
 volumes:
   mongo_data:
