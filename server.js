@@ -18,7 +18,7 @@ connectDB();
 app.use("/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Express + Mongoose App (MVC Pattern)");
+  res.send("Welcome to Express + Mongoose + DOCKER");
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
