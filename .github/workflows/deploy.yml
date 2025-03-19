@@ -30,6 +30,10 @@ jobs:
             # Navigate to the project directory
             cd /var/www/auto-deploy || exit
 
+            # Reset any local changes to prevent merge conflicts
+            sudo -u ubuntu git reset --hard origin/main
+            sudo -u ubuntu git clean -fd
+
             # Pull the latest changes as 'ubuntu' user
             sudo -u ubuntu git pull origin main
 
