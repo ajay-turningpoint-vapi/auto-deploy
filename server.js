@@ -18,7 +18,7 @@ connectDB();
 app.use("/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Express + Mongoose + DOCKER Container app running");
+  res.send("Welcome to the Task Manager API");
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
