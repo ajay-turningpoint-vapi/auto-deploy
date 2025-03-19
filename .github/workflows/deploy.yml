@@ -11,35 +11,39 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up SSH and Deploy
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Mark the repo as safe for Git
+            # Mark the repository as safe
             git config --global --add safe.directory /var/www/auto-deploy
+
+            # Change ownership in case of permission issues
+            sudo chown -R ubuntu:ubuntu /var/www/auto-deploy
+            sudo chmod -R 755 /var/www/auto-deploy
 
             # Navigate to the project directory
             cd /var/www/auto-deploy || exit
 
-            # Pull the latest changes from GitHub
+            # Pull the latest changes as 'ubuntu' user
             sudo -u ubuntu git pull origin main
 
             # Stop and remove old containers
             sudo docker-compose down
 
-            # Remove unused Docker images to free up space
+            # Clean up unused Docker images
             sudo docker system prune -af
 
             # Build and restart containers
             sudo docker-compose up -d --build
 
-            # Restart Nginx to apply changes
+            # Restart Nginx
             sudo systemctl restart nginx
 
-            # Verify running containers
+            # Show running containers
             sudo docker ps -a
