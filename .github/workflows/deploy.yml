@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Change to the project directory
-            cd ~/express-mongoose-docker || exit
+            cd /var/www/auto-deploy || exit
 
             # Pull the latest changes from GitHub
             git pull origin main
