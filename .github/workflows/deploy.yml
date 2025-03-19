@@ -20,34 +20,46 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Mark the repository as safe
-            git config --global --add safe.directory /var/www/auto-deploy
+            echo "🚀 Starting Deployment on EC2..."
+
+            # Define variables
+            APP_DIR="/var/www/auto-deploy"
+            LOG_FILE="/var/log/deploy.log"
+
+            # Mark the repository as safe to avoid Git warnings
+            git config --global --add safe.directory $APP_DIR
 
             # Change ownership in case of permission issues
-            sudo chown -R ubuntu:ubuntu /var/www/auto-deploy
-            sudo chmod -R 755 /var/www/auto-deploy
+            sudo chown -R ubuntu:ubuntu $APP_DIR
+            sudo chmod -R 755 $APP_DIR
 
             # Navigate to the project directory
-            cd /var/www/auto-deploy || exit
+            cd $APP_DIR || { echo "❌ ERROR: Directory not found!" | tee -a $LOG_FILE; exit 1; }
 
             # Reset any local changes to prevent merge conflicts
             sudo -u ubuntu git reset --hard origin/main
             sudo -u ubuntu git clean -fd
 
             # Pull the latest changes as 'ubuntu' user
-            sudo -u ubuntu git pull origin main
+            echo "🔄 Pulling latest code from GitHub..."
+            sudo -u ubuntu git pull origin main | tee -a $LOG_FILE
 
-            # Stop and remove old containers
-            sudo docker-compose down
+            # Stop and remove old containers safely
+            echo "🛑 Stopping old containers..."
+            sudo docker-compose down | tee -a $LOG_FILE
 
-            # Clean up unused Docker images
-            sudo docker system prune -af
+            # Remove old images and free up space
+            echo "🧹 Cleaning up old Docker images..."
+            sudo docker system prune -af | tee -a $LOG_FILE
 
-            # Build and restart containers
-            sudo docker-compose up -d --build
+            # Rebuild and restart containers with no downtime
+            echo "🚀 Building and starting new containers..."
+            sudo docker-compose up -d --build | tee -a $LOG_FILE
 
-            # Restart Nginx
-            sudo systemctl restart nginx
+            # Restart Nginx to apply latest changes
+            echo "🔄 Restarting Nginx..."
+            sudo systemctl restart nginx | tee -a $LOG_FILE
 
             # Show running containers
-            sudo docker ps -a
+            echo "✅ Deployment Completed. Running Containers:"
+            sudo docker ps -a | tee -a $LOG_FILE
