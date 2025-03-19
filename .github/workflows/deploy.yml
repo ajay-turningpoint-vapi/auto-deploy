@@ -26,40 +26,44 @@ jobs:
             APP_DIR="/var/www/auto-deploy"
             LOG_FILE="/var/log/deploy.log"
 
-            # Mark the repository as safe to avoid Git warnings
+            # Ensure log file exists and has proper permissions
+            sudo touch $LOG_FILE
+            sudo chmod 666 $LOG_FILE  # Allow all users to write logs
+
+            # Mark the repository as safe
             git config --global --add safe.directory $APP_DIR
 
-            # Change ownership in case of permission issues
+            # Fix ownership issues
             sudo chown -R ubuntu:ubuntu $APP_DIR
             sudo chmod -R 755 $APP_DIR
 
-            # Navigate to the project directory
-            cd $APP_DIR || { echo "❌ ERROR: Directory not found!" | tee -a $LOG_FILE; exit 1; }
+            # Navigate to project directory
+            cd $APP_DIR || { echo "❌ ERROR: Directory not found!" | sudo tee -a $LOG_FILE; exit 1; }
 
             # Reset any local changes to prevent merge conflicts
-            sudo -u ubuntu git reset --hard origin/main
-            sudo -u ubuntu git clean -fd
+            git reset --hard origin/main
+            git clean -fd
 
-            # Pull the latest changes as 'ubuntu' user
-            echo "🔄 Pulling latest code from GitHub..."
-            sudo -u ubuntu git pull origin main | tee -a $LOG_FILE
+            # Pull the latest changes
+            echo "🔄 Pulling latest code from GitHub..." | sudo tee -a $LOG_FILE
+            git pull origin main | sudo tee -a $LOG_FILE
 
             # Stop and remove old containers safely
-            echo "🛑 Stopping old containers..."
-            sudo docker-compose down | tee -a $LOG_FILE
+            echo "🛑 Stopping old containers..." | sudo tee -a $LOG_FILE
+            sudo docker-compose down | sudo tee -a $LOG_FILE
 
             # Remove old images and free up space
-            echo "🧹 Cleaning up old Docker images..."
-            sudo docker system prune -af | tee -a $LOG_FILE
+            echo "🧹 Cleaning up old Docker images..." | sudo tee -a $LOG_FILE
+            sudo docker system prune -af | sudo tee -a $LOG_FILE
 
-            # Rebuild and restart containers with no downtime
-            echo "🚀 Building and starting new containers..."
-            sudo docker-compose up -d --build | tee -a $LOG_FILE
+            # Rebuild and restart containers
+            echo "🚀 Building and starting new containers..." | sudo tee -a $LOG_FILE
+            sudo docker-compose up -d --build | sudo tee -a $LOG_FILE
 
             # Restart Nginx to apply latest changes
-            echo "🔄 Restarting Nginx..."
-            sudo systemctl restart nginx | tee -a $LOG_FILE
+            echo "🔄 Restarting Nginx..." | sudo tee -a $LOG_FILE
+            sudo systemctl restart nginx | sudo tee -a $LOG_FILE
 
             # Show running containers
-            echo "✅ Deployment Completed. Running Containers:"
-            sudo docker ps -a | tee -a $LOG_FILE
+            echo "✅ Deployment Completed. Running Containers:" | sudo tee -a $LOG_FILE
+            sudo docker ps -a | sudo tee -a $LOG_FILE
