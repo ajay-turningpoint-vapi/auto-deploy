@@ -9,6 +9,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - app_network
 
   app:
     build: .
@@ -19,6 +21,8 @@ services:
       - MONGO_URI=mongodb+srv://turningpoint:pFyIV13V5STCylEt@cluster-turningpoint.d636ay8.mongodb.net/docker_test
     depends_on:
       - mongo
+    networks:
+      - app_network  # Ensure Express is in the same network
 
   nginx:
     image: nginx:latest
@@ -39,4 +43,4 @@ volumes:
   mongo_data:
 
 networks:
-  app_network:
+  app_network:  # Defines the shared network
