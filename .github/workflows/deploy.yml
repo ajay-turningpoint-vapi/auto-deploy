@@ -13,17 +13,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Deploy to EC2
+      - name: Set up SSH and Deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd express-mongoose-docker
+            # Change to the project directory
+            cd ~/express-mongoose-docker || exit
+
+            # Pull the latest changes from GitHub
             git pull origin main
+
+            # Stop and remove old containers
             docker-compose down
+
+            # Remove unused Docker images to free up space
+            docker system prune -af
+
+            # Build and restart containers
             docker-compose up -d --build
+
+            # Restart Nginx to apply any changes
             sudo systemctl restart nginx
 
-                
+            # Verify running containers
+            docker ps -a
