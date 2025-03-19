@@ -19,27 +19,27 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-  # Mark the repo as safe for Git
-  git config --global --add safe.directory /var/www/auto-deploy
+          script: |
+            # Mark the repo as safe for Git
+            git config --global --add safe.directory /var/www/auto-deploy
 
-  # Navigate to the project directory
-  cd /var/www/auto-deploy || exit
+            # Navigate to the project directory
+            cd /var/www/auto-deploy || exit
 
-  # Pull the latest changes from GitHub
-  sudo -u ubuntu git pull origin main
+            # Pull the latest changes from GitHub
+            sudo -u ubuntu git pull origin main
 
-  # Stop and remove old containers
-  sudo docker-compose down
+            # Stop and remove old containers
+            sudo docker-compose down
 
-  # Remove unused Docker images to free up space
-  sudo docker system prune -af
+            # Remove unused Docker images to free up space
+            sudo docker system prune -af
 
-  # Build and restart containers
-  sudo docker-compose up -d --build
+            # Build and restart containers
+            sudo docker-compose up -d --build
 
-  # Restart Nginx to apply changes
-  sudo systemctl restart nginx
+            # Restart Nginx to apply changes
+            sudo systemctl restart nginx
 
-  # Verify running containers
-  sudo docker ps -a
+            # Verify running containers
+            sudo docker ps -a
