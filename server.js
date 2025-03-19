@@ -18,7 +18,7 @@ connectDB();
 app.use("/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the Task Manager API YML");
+  res.send("Welcome to the Task Manager API using Node.js, Express, and MongoDB!");
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
